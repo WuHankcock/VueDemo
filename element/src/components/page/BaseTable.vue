@@ -7,7 +7,7 @@
             </el-breadcrumb>
             <div data-v-1d79c98a="" class="form-group pull-right">
                 <el-input v-model="tbsearch" type="text" placeholder="Type to search.." class="form-control tbsearch"/> 
-                <el-button type="primary" @click="onSearch(tbsearch)" class='tbsearchBTN'>查询</el-button>
+                <el-button type="primary" @click="onSearch(true)" class='tbsearchBTN'>查询</el-button>
             </div>
             <el-button type="primary" class='addNewTB' @click='addNewTbdialogVisible = true;action="add"'>添加</el-button>
         </div>
@@ -66,7 +66,8 @@
                     layout="prev, pager, next"
                     @current-change="handleCurrentChange"
                     :total= 'total'
-                    :page-size='15'>
+                    :page-size='15'
+                    :current-page='currentPage'>
             </el-pagination>
         </div>
     </div>
@@ -92,7 +93,8 @@
                 rowIndex :'',
                 showClose:false,
                 closeOnClickModal:false,
-                total:0
+                total:0,
+                currentPage:1
             }
         },
         methods: {
@@ -109,6 +111,8 @@
                     params:row
                 }).then(result =>{
                     this.$message.error('删除第'+(index+1)+'行');
+                }).then(res=>{
+                    this.onSearch(false);
                 }).catch(err =>{
                     this.$message.error('删除第'+(index+1)+'行失败',err);
                 })
@@ -176,22 +180,25 @@
                     'Population':''
                 }
             },
-            onSearch(tbsearch){
+            onSearch(isGoFirst){
+                this.currentPage = isGoFirst? 1 : this.currentPage;
                 axios.get('http://localhost:8081/search',{
                     params:{
                         'condition':this.formLabelAlign,
-                        'keyword':tbsearch,
-                        'currentIndex':1
+                        'keyword':this.tbsearch,
+                        'currentIndex':this.currentPage
                     }
                 }).then(res=>{
                     this.tableData = res.data.data;
                     this.total = res.data.cnt;
+                    console.log(this.currentPage);
                     console.log(res);
                 }).catch(err=>{ 
                     alert('查询失败！');
                 })
             },
             handleCurrentChange(val){
+                this.currentPage = val;
                 axios.get('http://localhost:8081/search',{
                     params:{
                         'condition':this.formLabelAlign,
