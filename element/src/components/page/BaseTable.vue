@@ -8,7 +8,7 @@
             <el-button type="primary" class='addNewTB' @click='addNewTbdialogVisible = true;action="add"'>添加</el-button>
         </div>
 
-        <el-dialog title="添加" v-model="addNewTbdialogVisible" size="tiny">
+        <el-dialog title="添加" v-model="addNewTbdialogVisible" size="tiny" show-close="false" close-on-click-modal="false">
             <el-form :label-position="labelPosition" label-width="80px" :model="formLabelAlign">
                 <el-form-item label="名称:">
                     <el-input v-model="formLabelAlign.Name"></el-input>
@@ -24,8 +24,8 @@
                 </el-form-item>
             </el-form>
             <span slot="footer" class="dialog-footer">
-                <el-button @click="dialogVisible = false">取 消</el-button>
-                <el-button type="primary" @click="dialogVisible = false;handleClick()">确 定</el-button>
+                <el-button @click="addNewTbdialogVisible = false;clearForm()">取 消</el-button>
+                <el-button type="primary" @click="addNewTbdialogVisible = false;handleClick();clearForm()">确 定</el-button>
             </span>
         </el-dialog>
 
@@ -73,6 +73,7 @@
             return {
                 tableData: [],
                 formLabelAlign:{
+                    'ID':'',
                     'Name':'',
                     'CountryCode':'',
                     'District':'',
@@ -82,7 +83,9 @@
                 labelPosition:'right',
                 action:'',
                 oldRow : '',
-                rowIndex :''
+                rowIndex :'',
+                showClose:false,
+                closeOnClickModal:false
             }
         },
         methods: {
@@ -96,13 +99,8 @@
             },
             handleDelete(index, row) {
                 axios.get('http://localhost:8081/delete',{
-                params:{
-                    'Name':'Kabul',
-                    'CountryCode':'AFG',
-                    'District':'Kabol',
-                    'ID':1,
-                    'Population':'1780000'
-                }}).then(result =>{
+                    params:row
+                }).then(result =>{
                     this.$message.error('删除第'+(index+1)+'行');
                 }).catch(err =>{
                     this.$message.error('删除第'+(index+1)+'行失败',err);
@@ -160,6 +158,16 @@
                     this.$message.error('添加失败！');
                 });
             
+            },
+            clearForm(){
+                console.log('in clearForm')
+                this.formLabelAlign={
+                    'ID':'',
+                    'Name':'',
+                    'CountryCode':'',
+                    'District':'',
+                    'Population':''
+                }
             }
         },
         beforeMount(){

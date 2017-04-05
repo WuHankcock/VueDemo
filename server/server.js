@@ -12,7 +12,7 @@ app.all('*', function (req, res, next) {
 });
 
 app.get('/', function (req, res) {
-    const sql = `select * from city where name='Xian' LIMIT 15`;
+    const sql = `select * from city LIMIT 15`;
     mysqlhelper.eval(sql).then(reslt => {
         console.log(reslt);
         res.send(reslt);
