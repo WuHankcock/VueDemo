@@ -1,0 +1,179 @@
+<template>
+    <div class="table">
+        <div class="crumbs">
+            <el-breadcrumb separator="/">
+                <el-breadcrumb-item><i class="el-icon-menu"></i> 表格</el-breadcrumb-item>
+                <el-breadcrumb-item>基础表格</el-breadcrumb-item>
+            </el-breadcrumb>
+            <el-button type="primary" class='addNewTB' @click='addNewTbdialogVisible = true;action="add"'>添加</el-button>
+        </div>
+
+        <el-dialog title="添加" v-model="addNewTbdialogVisible" size="tiny">
+            <el-form :label-position="labelPosition" label-width="80px" :model="formLabelAlign">
+                <el-form-item label="名称:">
+                    <el-input v-model="formLabelAlign.Name"></el-input>
+                </el-form-item>
+                <el-form-item label="地址编码:">
+                    <el-input v-model="formLabelAlign.CountryCode"></el-input>
+                </el-form-item>
+                <el-form-item label="地区:">
+                    <el-input v-model="formLabelAlign.District"></el-input>
+                </el-form-item>
+                <el-form-item label="人口:">
+                    <el-input v-model="formLabelAlign.Population"></el-input>
+                </el-form-item>
+            </el-form>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="dialogVisible = false">取 消</el-button>
+                <el-button type="primary" @click="dialogVisible = false;handleClick()">确 定</el-button>
+            </span>
+        </el-dialog>
+
+        <el-table :data="tableData" border style="width: 100%" height="500">
+            <el-table-column prop="ID" label="ID" sortable width="150">
+            </el-table-column>
+            <el-table-column prop="Name" label="名称" width="180">
+            </el-table-column>
+            <el-table-column prop="CountryCode" label="地址编码" width="120">
+            </el-table-column>
+            <el-table-column prop="District" label="地区" width="180">
+            </el-table-column>
+            <el-table-column prop="Population" label="人口" >
+            </el-table-column>
+            <!--el-table-column prop="tag" label="标签" width="120"
+                    :filters="[{ text: '家', value: '家' }, { text: '公司', value: '公司' }]"
+                    :filter-method="filterTag">
+                <template scope="scope">
+                    <el-tag :type="scope.row.tag === '家' ? 'primary' : 'success'" close-transition>{{scope.row.tag}}
+                    </el-tag>
+                </template>
+            </el-table-column-->
+            <el-table-column label="操作" >
+                <template scope="scope">
+                    <el-button size="small"
+                            @click="action='update';handleEdit(scope.$index, scope.row)">编辑</el-button>
+                    <el-button size="small" type="danger"
+                            @click="handleDelete(scope.$index, scope.row)">删除</el-button>
+                </template>
+            </el-table-column>
+        </el-table>
+        <div class="pagination">
+            <el-pagination
+                    layout="prev, pager, next"
+                    :total="1000">
+            </el-pagination>
+        </div>
+    </div>
+</template>
+
+<script>
+    import axios from 'axios';
+    export default {
+        data() {
+            return {
+                tableData: [],
+                formLabelAlign:{
+                    'Name':'',
+                    'CountryCode':'',
+                    'District':'',
+                    'Population':''
+                },
+                addNewTbdialogVisible : false,
+                labelPosition:'right',
+                action:'',
+                oldRow : '',
+                rowIndex :''
+            }
+        },
+        methods: {
+            handleEdit(index, row) {
+                this.$message('编辑第'+(index+1)+'行');
+                console.log(row);
+                this.addNewTbdialogVisible = true;
+                this.formLabelAlign = JSON.parse(JSON.stringify(row));
+                this.oldRow = row;
+                this.rowIndex = index;
+            },
+            handleDelete(index, row) {
+                axios.get('http://localhost:8081/delete',{
+                params:{
+                    'Name':'Kabul',
+                    'CountryCode':'AFG',
+                    'District':'Kabol',
+                    'ID':1,
+                    'Population':'1780000'
+                }}).then(result =>{
+                    this.$message.error('删除第'+(index+1)+'行');
+                }).catch(err =>{
+                    this.$message.error('删除第'+(index+1)+'行失败',err);
+                })
+                
+            },
+            addTotb(formLabelAlign){
+                axios.get('http://localhost:8081/add',{
+                    params:formLabelAlign
+                }).then(res =>{
+                    console.log(res);
+                    if(res.data === 'add!'){
+                        this.$message({
+                            message: '添加成功！',
+                            type: 'success'
+                        });
+                    }else{
+                        this.$message.error('添加失败！');
+                    }
+                }).catch(err=>{
+                    this.$message.error('添加失败！');
+                });
+            },
+            handleClick(){
+                console.log(this.action);
+                switch(this.action){
+                    case 'add':
+                       this.addTotb(this.formLabelAlign);
+                       break;
+                    case 'update':
+                        console.log('update');
+                        this.updatetb(this.formLabelAlign);
+                }
+            },
+            updatetb(formLabelAlign){
+                console.log('in update')
+                axios.get('http://localhost:8081/update',{
+                    params:{
+                        'new':formLabelAlign,
+                        'old':this.oldRow
+                    }
+                }).then(res =>{
+                    console.log(res);
+                    if(res.data === 'add!'){
+                        this.$message({
+                            message: '添加成功！',
+                            type: 'success'
+                        });
+                        console.log(this.tableData);
+                        this.tableData[this.rowIndex] = formLabelAlign;
+                    }else{
+                        this.$message.error('添加失败！');
+                    }
+                }).catch(err=>{
+                    this.$message.error('添加失败！');
+                });
+            
+            }
+        },
+        beforeMount(){
+            axios.get('http://localhost:8081').then( (res) => {
+                this.tableData = res.data.data;
+            })
+        }
+    }
+</script>
+
+<style>
+    .addNewTB{
+        position: absolute;
+        top: 20px;
+        right: 50px;
+    }
+</style>
