@@ -22,6 +22,21 @@ app.get('/', function (req, res) {
 
 });
 
+app.get('/search', function (req, res) {
+    let sql = `select * from city where`;
+    let conditionArr = Object.keys(JSON.parse(req.query.condition));
+    let keyword = req.query.keyword;
+    for (let i = 0, len = conditionArr.length; i < len; i++) {
+        conditionArr[i] = `${conditionArr[i]} like '%${keyword}%'`
+    }
+    sql = `${sql} ${conditionArr.join(' or ')}`;
+    mysqlhelper.eval(sql).then(result => {
+        res.send(result);
+    }).catch(err => {
+        res.send(err);
+    });
+});
+
 app.get('/delete', function (req, res) {
     res.header("Access-Control-Allow-Origin", "*");
     let sql = 'delete from city where ';

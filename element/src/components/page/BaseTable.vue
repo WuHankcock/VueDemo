@@ -5,6 +5,10 @@
                 <el-breadcrumb-item><i class="el-icon-menu"></i> 表格</el-breadcrumb-item>
                 <el-breadcrumb-item>基础表格</el-breadcrumb-item>
             </el-breadcrumb>
+            <div data-v-1d79c98a="" class="form-group pull-right">
+                <el-input v-model="tbsearch" type="text" placeholder="Type to search.." class="form-control tbsearch"/> 
+                <el-button type="primary" @click="onSearch(tbsearch)" class='tbsearchBTN'>查询</el-button>
+            </div>
             <el-button type="primary" class='addNewTB' @click='addNewTbdialogVisible = true;action="add"'>添加</el-button>
         </div>
 
@@ -168,11 +172,25 @@
                     'District':'',
                     'Population':''
                 }
+            },
+            onSearch(tbsearch){
+                axios.get('http://localhost:8081/search',{
+                    params:{
+                        'condition':this.formLabelAlign,
+                        'keyword':tbsearch
+                    }
+                }).then(res=>{
+                    this.tableData = res.data.data;
+                    console.log(res);
+                }).catch(err=>{ 
+                    alert('查询失败！');
+                })
             }
         },
         beforeMount(){
             axios.get('http://localhost:8081').then( (res) => {
                 this.tableData = res.data.data;
+                console.log(this.tableData);
             })
         }
     }
@@ -183,5 +201,16 @@
         position: absolute;
         top: 20px;
         right: 50px;
+    }
+    .tbsearch{
+        position: absolute;
+        top: 20px;
+        right: 200px;
+        width:200px;
+    }
+    .tbsearchBTN{
+        position: absolute;
+        top: 20px;
+        right: 135px;
     }
 </style>
