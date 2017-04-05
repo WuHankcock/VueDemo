@@ -165,6 +165,8 @@
                     }else{
                         this.$message.error('添加失败！');
                     }
+                }).then(res=>{
+                    this.onSearch(false);
                 }).catch(err=>{
                     this.$message.error('添加失败！');
                 });
