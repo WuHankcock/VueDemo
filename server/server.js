@@ -12,7 +12,7 @@ app.all('*', function (req, res, next) {
 });
 
 app.get('/', function (req, res) {
-    const sql = `select * from city LIMIT 15`;
+    let sql = `select * from city LIMIT 15`;
     mysqlhelper.eval(sql).then(reslt => {
         console.log(reslt);
         res.send(reslt);
@@ -23,18 +23,30 @@ app.get('/', function (req, res) {
 });
 
 app.get('/search', function (req, res) {
-    let sql = `select * from city where`;
-    let conditionArr = Object.keys(JSON.parse(req.query.condition));
-    let keyword = req.query.keyword;
+    let sql = `select * from city `;
+    let conditionArr = req.query.condition ? Object.keys(JSON.parse(req.query.condition)) : [];
+    let keyword = req.query.keyword || '';
+    let currentIndex = req.query.currentIndex || 1;
+    let minlinenm = 15 * currentIndex - 15;
+    let cnt;
     for (let i = 0, len = conditionArr.length; i < len; i++) {
         conditionArr[i] = `${conditionArr[i]} like '%${keyword}%'`
     }
-    sql = `${sql} ${conditionArr.join(' or ')}`;
-    mysqlhelper.eval(sql).then(result => {
-        res.send(result);
-    }).catch(err => {
-        res.send(err);
-    });
+    let isWhere = conditionArr.length > 0 ? ' where ' : '';
+    let countSql = `select count(1) as cnt from city ${isWhere} ${conditionArr.join(' or ')}`;
+
+    mysqlhelper.eval(countSql).then(result1 => {
+        cnt = result1.data[0].cnt;
+        result1;
+        sql = `${sql} ${isWhere} ${conditionArr.join(' or ')} LIMIT ${minlinenm} ,15`;
+        mysqlhelper.eval(sql).then(result => {
+            result.cnt = cnt;
+            res.send(result);
+        }).catch(err => {
+            res.send(err);
+        });
+    })
+
 });
 
 app.get('/delete', function (req, res) {

@@ -64,7 +64,9 @@
         <div class="pagination">
             <el-pagination
                     layout="prev, pager, next"
-                    :total="1000">
+                    @current-change="handleCurrentChange"
+                    :total= 'total'
+                    :page-size='15'>
             </el-pagination>
         </div>
     </div>
@@ -89,7 +91,8 @@
                 oldRow : '',
                 rowIndex :'',
                 showClose:false,
-                closeOnClickModal:false
+                closeOnClickModal:false,
+                total:0
             }
         },
         methods: {
@@ -177,19 +180,35 @@
                 axios.get('http://localhost:8081/search',{
                     params:{
                         'condition':this.formLabelAlign,
-                        'keyword':tbsearch
+                        'keyword':tbsearch,
+                        'currentIndex':1
                     }
                 }).then(res=>{
                     this.tableData = res.data.data;
+                    this.total = res.data.cnt;
                     console.log(res);
                 }).catch(err=>{ 
                     alert('查询失败！');
                 })
+            },
+            handleCurrentChange(val){
+                axios.get('http://localhost:8081/search',{
+                    params:{
+                        'condition':this.formLabelAlign,
+                        'keyword':this.tbsearch,
+                        'currentIndex':val
+                    }
+                }).then( (res) => {
+                    this.tableData = res.data.data;
+                    this.total = res.data.cnt;
+                    console.log(this.tableData);
+                })
             }
         },
         beforeMount(){
-            axios.get('http://localhost:8081').then( (res) => {
+            axios.get('http://localhost:8081/search').then( (res) => {
                 this.tableData = res.data.data;
+                this.total = res.data.cnt;
                 console.log(this.tableData);
             })
         }
